@@ -1,2 +1,705 @@
-# uonicf
-учет смен
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Учет смен</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stats {
+            display: flex;
+            gap: 12px;
+            background: #f6f6f6;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-item .icon {
+            font-size: 20px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .stat-item .label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .stat-item .value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .stat-item input {
+            width: 60px;
+            text-align: center;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .divider {
+            width: 1px;
+            background: #ddd;
+        }
+
+        .month-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        .month-nav button {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .month-nav button:hover {
+            background: #0051D5;
+        }
+
+        .month-name {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .calendar {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+            padding: 8px 0;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            background: #f6f6f6;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 8px;
+            transition: all 0.2s;
+        }
+
+        .day:hover {
+            background: #e0e0e0;
+        }
+
+        .day.has-shift {
+            background: #d4f4dd;
+        }
+
+        .day.today {
+            border: 2px solid #007AFF;
+        }
+
+        .day-number {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .day-hours {
+            font-size: 10px;
+            color: #34C759;
+            font-weight: bold;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .quick-btn {
+            flex: 1;
+            background: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .quick-btn .icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .quick-btn .text {
+            font-size: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            max-width: 400px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #007AFF;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0051D5;
+        }
+
+        .btn-secondary {
+            background: #f6f6f6;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: #FF3B30;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #D70015;
+        }
+
+        .goals {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .goal-item {
+            margin-bottom: 16px;
+        }
+
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #34C759;
+            transition: width 0.3s;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .stats {
+                flex-direction: column;
+            }
+
+            .divider {
+                height: 1px;
+                width: 100%;
+            }
+
+            .quick-actions {
+                flex-wrap: wrap;
+            }
+
+            .quick-btn {
+                flex: 0 0 calc(50% - 6px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="stats">
+        <div class="stat-item">
+            <div class="icon">💵</div>
+            <div class="label">Ставка</div>
+            <input type="number" id="hourlyRate" value="15" min="0">
+        </div>
+   <div class="stat-item">
+            <div class="icon">🕐</div>
+            <div class="label">Часов</div>
+            <div class="value" id="totalHours">0.0</div>
+        </div>
+        <div class="divider"></div>
+        <div class="stat-item">
+            <div class="icon">💰</div>
+            <div class="label">Итого</div>
+            <div class="value" style="color: #34C759" id="totalEarnings">0 ₽</div>
+        </div>
+    </div>
+</div>
+
+<div class="month-nav">
+    <button onclick="previousMonth()">‹</button>
+    <div class="month-name" id="monthName"></div>
+    <button onclick="nextMonth()">›</button>
+</div>
+
+<div class="quick-actions">
+    <button class="quick-btn" onclick="quickAdd(8)">
+        <div class="icon">8️⃣</div>
+        <div class="text">8 часов</div>
+    </button>
+    <button class="quick-btn" onclick="quickAdd(12)">
+        <div class="icon">🕛</div>
+        <div class="text">12 часов</div>
+    </button>
+    <button class="quick-btn" onclick="showSettings()">
+        <div class="icon">⚙️</div>
+        <div class="text">Настройки</div>
+    </button>
+</div>
+
+<div class="goals" id="goalsSection" style="display: none;">
+    <div class="goal-item">
+        <div class="goal-header">
+            <span>Цель месяца</span>
+            <span id="monthGoalText">0 / 0 ₽</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="monthProgress" style="width: 0%"></div>
+        </div>
+    </div>
+</div>
+
+<div class="calendar">
+    <div class="weekdays">
+        <div class="weekday">Пн</div>
+        <div class="weekday">Вт</div>
+        <div class="weekday">Ср</div>
+        <div class="weekday">Чт</div>
+        <div class="weekday">Пт</div>
+        <div class="weekday">Сб</div>
+        <div class="weekday">Вс</div>
+    </div>
+    <div class="days" id="calendar"></div>
+</div>
+
+<!-- Modal для добавления/редактирования смены -->
+<div class="modal" id="shiftModal">
+    <div class="modal-content">
+        <div class="modal-header" id="modalTitle">Новая смена</div>
+        <form id="shiftForm">
+            <div class="form-group">
+                <label>Дата</label>
+                <input type="date" id="shiftDate" required>
+            </div>
+            <div class="form-group">
+                <label>Часов</label>
+                <input type="number" id="shiftHours" value="8" step="0.5" min="0" required>
+            </div>
+            <div class="form-group">
+                <label>Тип смены</label>
+                <select id="shiftType">
+                    <option value="standard">Обычная</option>
+                    <option value="weekend">Выходная (x1.5)</option>
+                    <option value="night">Ночная (x1.3)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Вычеты (₽)</label>
+                <input type="number" id="shiftDeduction" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label>Расходы (₽)</label>
+                <input type="number" id="shiftExpenses" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label>Заметка</label>
+                <textarea id="shiftNote" placeholder="Место работы, задачи..."></textarea>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+            </div>
+            <button type="button" class="btn btn-danger" id="deleteBtn" style="display: none; margin-top: 12px; width: 100%;" onclick="deleteShift()">Удалить</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal для настроек -->
+<div class="modal" id="settingsModal">
+    <div class="modal-content">
+        <div class="modal-header">Настройки</div>
+        <div class="form-group">
+            <label>Цель месяца (₽)</label>
+            <input type="number" id="monthlyGoal" value="0" min="0">
+        </div>
+        <div class="btn-group">     <div class="divider"></div>
+<button class="btn btn-secondary" onclick="closeSettings()">Отмена</button>
+            <button class="btn btn-primary" onclick="saveSettings()">Сохранить</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentDate = new Date();
+    let shifts = JSON.parse(localStorage.getItem('shifts') || '[]');
+    let hourlyRate = parseFloat(localStorage.getItem('hourlyRate') || '15');
+    let monthlyGoal = parseFloat(localStorage.getItem('monthlyGoal') || '0');
+    let editingShiftId = null;
+
+    document.getElementById('hourlyRate').value = hourlyRate;
+
+    document.getElementById('hourlyRate').addEventListener('change', function() {
+        hourlyRate = parseFloat(this.value);
+        localStorage.setItem('hourlyRate', hourlyRate);
+        updateStats();
+    });
+
+    function renderCalendar() {
+        const calendar = document.getElementById('calendar');
+        calendar.innerHTML = '';
+
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+            'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+        document.getElementById('monthName').textContent = `${monthNames[month]} ${year}`;
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+
+        for (let i = 0; i < startDay; i++) {
+            const emptyDay = document.createElement('div');
+            calendar.appendChild(emptyDay);
+        }
+
+        const today = new Date();
+        for (let day = 1; day <= lastDay.getDate(); day++) {
+            const date = new Date(year, month, day);
+            const dateStr = formatDate(date);
+            const shift = shifts.find(s => s.date === dateStr);
+
+            const dayEl = document.createElement('div');
+            dayEl.className = 'day';
+            if (shift) dayEl.classList.add('has-shift');
+            if (date.toDateString() === today.toDateString()) dayEl.classList.add('today');
+
+            dayEl.innerHTML = `
+                <div class="day-number">${day}</div>
+                ${shift ? `<div class="day-hours">${shift.hours}ч</div>` : ''}
+            `;
+
+            dayEl.onclick = () => openShiftModal(date, shift);
+            calendar.appendChild(dayEl);
+        }
+
+        updateStats();
+        updateGoals();
+    }
+
+    function formatDate(date) {
+        return date.toISOString().split('T')[0];
+    }
+
+    function openShiftModal(date, shift = null) {
+        editingShiftId = shift ? shift.id : null;
+        document.getElementById('modalTitle').textContent = shift ? 'Редактировать смену' : 'Новая смена';
+        document.getElementById('shiftDate').value = formatDate(date);
+        document.getElementById('shiftHours').value = shift ? shift.hours : 8;
+        document.getElementById('shiftType').value = shift ? shift.type : 'standard';
+        document.getElementById('shiftDeduction').value = shift ? shift.deduction : 0;
+        document.getElementById('shiftExpenses').value = shift ? shift.expenses : 0;
+        document.getElementById('shiftNote').value = shift ? shift.note : '';
+        document.getElementById('deleteBtn').style.display = shift ? 'block' : 'none';
+        document.getElementById('shiftModal').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('shiftModal').classList.remove('active');
+        editingShiftId = null;
+    }
+
+    document.getElementById('shiftForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const shiftData = {
+            id: editingShiftId || Date.now().toString(),
+            date: document.getElementById('shiftDate').value,
+            hours: parseFloat(document.getElementById('shiftHours').value),
+            type: document.getElementById('shiftType').value,
+            deduction: parseFloat(document.getElementById('shiftDeduction').value),
+            expenses: parseFloat(document.getElementById('shiftExpenses').
+
+value),
+            note: document.getElementById('shiftNote').value
+        };
+
+        if (editingShiftId) {
+            const index = shifts.findIndex(s => s.id === editingShiftId);
+            if (index !== -1) shifts[index] = shiftData;
+        } else {
+            shifts.push(shiftData);
+        }
+
+        localStorage.setItem('shifts', JSON.stringify(shifts));
+        closeModal();
+        renderCalendar();
+    });
+
+    function deleteShift() {
+        if (confirm('Удалить эту смену?')) {
+            shifts = shifts.filter(s => s.id !== editingShiftId);
+            localStorage.setItem('shifts', JSON.stringify(shifts));
+            closeModal();
+            renderCalendar();
+        }
+    }
+
+    function quickAdd(hours) {
+        const today = new Date();
+        const dateStr = formatDate(today);
+        const existing = shifts.find(s => s.date === dateStr);
+
+        if (existing) {
+            openShiftModal(today, existing);
+        } else {
+            shifts.push({
+                id: Date.now().toString(),
+                date: dateStr,
+                hours: hours,
+                type: 'standard',
+                deduction: 0,
+                expenses: 0,
+                note: ''
+            });
+            localStorage.setItem('shifts', JSON.stringify(shifts));
+            renderCalendar();
+        }
+    }
+
+    function updateStats() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        const monthShifts = shifts.filter(s => {
+            const shiftDate = new Date(s.date);
+            return shiftDate.getFullYear() === year && shiftDate.getMonth() === month;
+        });
+
+        const totalHours = monthShifts.reduce((sum, s) => sum + s.hours, 0);
+        let totalEarnings = 0;
+
+        monthShifts.forEach(s => {
+            let rate = hourlyRate;
+            if (s.type === 'weekend') rate *= 1.5;
+            if (s.type === 'night') rate *= 1.3;
+            totalEarnings += (s.hours * rate) - s.deduction - s.expenses;
+        });
+
+        document.getElementById('totalHours').textContent = totalHours.toFixed(1);
+        document.getElementById('totalEarnings').textContent = Math.round(totalEarnings) + ' ₽';
+    }
+
+    function updateGoals() {
+        if (monthlyGoal > 0) {
+            document.getElementById('goalsSection').style.display = 'block';
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const monthShifts = shifts.filter(s => {
+                const shiftDate = new Date(s.date);
+                return shiftDate.getFullYear() === year && shiftDate.getMonth() === month;
+            });
+
+            let totalEarnings = 0;
+            monthShifts.forEach(s => {
+                let rate = hourlyRate;
+                if (s.type === 'weekend') rate *= 1.5;
+                if (s.type === 'night') rate *= 1.3;
+                totalEarnings += (s.hours * rate) - s.deduction - s.expenses;
+            });
+
+            const progress = Math.min((totalEarnings / monthlyGoal) * 100, 100);
+            document.getElementById('monthGoalText').textContent = 
+                `${Math.round(totalEarnings)} / ${Math.round(monthlyGoal)} ₽`;
+            document.getElementById('monthProgress').style.width = progress + '%';
+        } else {
+            document.getElementById('goalsSection').style.display = 'none';
+        }
+    }
+
+    function previousMonth() {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+    }
+
+    function nextMonth() {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+    }
+
+    function showSettings() {
+        document.getElementById('monthlyGoal').value = monthlyGoal;
+        document.getElementById('settingsModal').classList.add('active');
+    }
+
+    function closeSettings() {
+        document.getElementById('settingsModal').classList.remove('active');
+    }
+
+    function saveSettings() {
+        monthlyGoal = parseFloat(document.getElementById('monthlyGoal').value);
+        localStorage.
+setItem('monthlyGoal', monthlyGoal);
+        closeSettings();
+        updateGoals();
+    }
+
+    renderCalendar();
+</script>
+
+</body>
+</html>
